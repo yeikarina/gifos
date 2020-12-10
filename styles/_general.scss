@@ -1,0 +1,43 @@
+@mixin title-Desktop {
+    font-size: 25px;
+    font-family: 'Montserrat', sans-serif;
+    color: #572EE5;
+    text-justify: center;
+}
+
+@mixin subtitle-Desktop {
+    font-size: 20px;
+    color: #572EE5;
+    font-family: 'Montserrat', sans-serif;
+}
+
+@mixin p {
+    font-size: 16;
+    font-family: 'Roboto', sans-serif;
+    color: #000000;
+}
+
+@mixin sectionWidth {
+    width: 100%;
+    padding-left: 6%;
+    padding-right: 6%;
+    box-sizing: border-box;
+}
+
+@function emToPx($fontSize, $em){
+    @return $fontSize * $em;
+}
+
+@function pxToEm($fontSize, $px){
+    @return $px / $fontSize;
+}
+body div.Display-none{
+    display: none;
+    z-index: -1;
+}
+.Main .Main-Search form .Display-none{
+    display: none;
+}
+.Main .Main-Search form .Visibility-hidden{
+    visibility: hidden;
+}
