@@ -164,6 +164,8 @@ body {
 
 .Header-check:checked ~ .Header-nav {
   height: 100vh;
+  position: absolute;
+  z-index: 2;
 }
 
 .Main {

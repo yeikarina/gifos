@@ -103,7 +103,9 @@ body{
         display: inline-block;
     }
     &-check:checked ~ &-nav{
-        height: 100vh;        
+        height: 100vh;     
+        position: fixed;
+        z-index: 2;   
     }
 
 }

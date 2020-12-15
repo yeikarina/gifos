@@ -41,7 +41,11 @@
         const addToFav = document.querySelector(".heart");
         addToFav.addEventListener("click", event => {
             if (favoriteGifos.length === 0) {
-                console.log("Favorites es igual a null");
+                document.querySelector(".Main-favorites")
+                    .removeChild(document.querySelector(".fav-noContent-icon"));
+                document.querySelector(".Main-favorites")
+                    .removeChild(document.querySelector(".p-noContent"));
+
             }
             const user = document.querySelector(".Maxed .info .user");
             const urlImg = document.querySelector(".Maxed img");
@@ -50,7 +54,7 @@
             if (typeof favoriteGifos.find(element => element.name === title.textContent) === "undefined") {
                 favoriteGifos.push(new Gif(title.textContent, user.textContent, size, urlImg.src));
                 localStorage.setItem("favorites", JSON.stringify(favoriteGifos));
-                favoriteGifos.renderGif(favoriteGifos.length - 1);
+                favoriteGifos.renderFavGif(favoriteGifos.length - 1);
                 console.log("Added to favs");
             } else {
                 console.log("Ya se habia agregado a favoritos");
@@ -70,16 +74,16 @@
         });
 
         const searchInput = document.querySelector(".Main-input");
-        searchInput.addEventListener("keyup", event =>{
-            if(searchInput.value === ""){
-                console.log("No es vacio el imput");
+        searchInput.addEventListener("keyup", event => {
+            if (searchInput.value === "") {
+                console.log("Es vacio el imput");
                 const searchLeft = document.querySelector(".Search-button");
                 searchLeft.classList.add("Visibility-hidden");
                 const searchButton = document.querySelector(".Main-button");
                 searchButton.classList.remove("Display-none")
                 const searchClose = document.querySelector(".Search-close");
                 searchClose.classList.add("Display-none");
-            }else{                
+            } else {
                 const searchLeft = document.querySelector(".Search-button");
                 searchLeft.classList.remove("Visibility-hidden");
                 console.log("No es vacio el imput");
@@ -89,36 +93,42 @@
                 searchClose.classList.remove("Display-none");
             }
             const search = fetch(`https://api.giphy.com/v1/gifs/search/tags?api_key=kw3X9FTrbh2vB8r9JFZSSF2FIPDWlitS&q=${searchInput.value}`)
-            .then(result =>{
-                if(result.ok && result.status === 200){
-                    console.log("----------------" );
-                    let options = "";
-                    result.json()
-                    .then(jsonData => {
-                        console.log("----------------", jsonData.data);
-                        jsonData.data.forEach((option,index) => {
-                            console.log("----------------",index );
-                            options = options + `<div class="Option" data-number=${index}><i class="fas fa-search Option-button"></i><span>${option.name}</span></div>`;
-                        });
+                .then(result => {
+                    if (result.ok && result.status === 200) {
+                        console.log("----------------");
+                        let options = "";
+                        result.json()
+                            .then(jsonData => {
+                                console.log("----------------", jsonData.data);
+                                jsonData.data.forEach((option, index) => {
+                                    console.log("----------------", index);
+                                    options = options + `<div class="Option" data-number=${index}><i class="fas fa-search Option-button"></i><span>${option.name}</span></div>`;
+                                });
 
-                        const listInput = document.createElement("div");
-                        listInput.classList.add("Options-div");
-                        listInput.innerHTML = options;
-                        const searchForm = document.querySelector(".Main-form");
+                                const listInput = document.createElement("div");
+                                listInput.classList.add("Options-div");
+                                listInput.innerHTML = options;
+                                const searchForm = document.querySelector(".Main-form");
 
-                        //se obtiene el listInput que tiene ahora mismo
-                        const oldList = document.querySelector(".Options-div");
-                        searchForm.replaceChild(listInput, oldList);                        
-                    })
-                    .catch(error => {
-                        console.log("erroreeeees: ", error);
-                    });
-                }else{
-                    console.log("No cargo bien")
-                }
-            }).catch(error =>{
-                console.log("hubo un error cargando la busqueda" );
-            });
+                                //se obtiene el listInput que tiene ahora mismo
+                                const oldList = document.querySelector(".Options-div");
+                                searchForm.replaceChild(listInput, oldList);
+
+                                //se agregan events
+                                const searchButton = document.querySelector(".Search-button");
+                                searchButton.addEventListener("click", event => {
+                                    addSearchGifEvent();
+                                });
+                            })
+                            .catch(error => {
+                                console.log("erroreeeees: ", error);
+                            });
+                    } else {
+                        console.log("No cargo bien")
+                    }
+                }).catch(error => {
+                    console.log("hubo un error cargando la busqueda");
+                });
 
         });
 
@@ -135,7 +145,8 @@
             searchClose.classList.add("Display-none");
             const listInput = document.querySelector(".Options-div");
             listInput.innerHTML = "";
-        })
+        });
+
     }
 
 
@@ -211,18 +222,18 @@
         //realizar validacion de si no existe searchSection entonces no realizar un replace
         //Looking for gifs in localStorage
         if (searchSection !== null) {
-
             if (favoriteGifos.length === 0) {
                 const favNoContentIcon = document.createElement("i");
                 favNoContentIcon.classList.add("fav-noContent-icon")
                 const favNoContentP = document.createElement("p");
+                favNoContentP.classList.add("p-noContent");
                 favNoContentP.innerText = "¡Guarda tu primer GIFO en Favoritos para que se muestre aquí!";
-                console.log("Favorites es igual a null");
                 //adding children
                 favoritesDiv.appendChild(icon);
                 favoritesDiv.appendChild(favTitle);
                 favoritesDiv.appendChild(favNoContentIcon);
                 favoritesDiv.appendChild(favNoContentP);
+                favoritesDiv.appendChild(favGifsDiv);
                 mainSection.replaceChild(favoritesDiv, searchSection);
             } else {
                 //adding children
@@ -232,7 +243,7 @@
                 mainSection.replaceChild(favoritesDiv, searchSection);
                 favoriteGifos.forEach((gif, index) => {
                     console.log("index: " + index);
-                    favoriteGifos.renderGif(index);
+                    favoriteGifos.renderFavGif(index);
                 });
             }
         }
@@ -243,23 +254,47 @@
         console.log(favArr);
         return favArr === null ? [] : favArr;
     }
+    async function addSearchGifEvent() {
+        const searchInput = document.querySelector(".Main-input");
+        const response = await fetch(`https://api.giphy.com/v1/stickers/search?api_key=kw3X9FTrbh2vB8r9JFZSSF2FIPDWlitS&q=${searchInput.value}`);     
+        console.log("response: " + response.status);    
+        const dataJson = await response.json();
+        
+        console.log("dataJson: " + dataJson);
+        const data = dataJson.data;
+
+         //rendering results
+        const mainResults = document.querySelector(".Main-results");
+        const resultsTitle = document.querySelector(".Main-results .title");
+        const resultsDiv = document.querySelector(".Main-results .results");
+        resultsTitle.innerText = searchInput.value;
+        
+        console.log("data: " + data);
+        data.forEach(element => {
+            console.log("Element: " + element.JSON);
+            const img = document.createElement("img");
+            img.classList.add("gif");
+            img.src = element.images.downsized;
+            console.log("img src: " + element.images.downsized);
+        })
+    }
 
     const favoriteGifos = loadfavorites();
-    favoriteGifos.renderGif = function (index) {
+    favoriteGifos.renderFavGif = function (index) {
         //creating elements
         const favGifsDiv = document.querySelector(".favGifs-div");
-        if(favGifsDiv !== null){
-            
-        console.log("Si tiene favoritos");
-        const gif = this[index];
-        const img = document.createElement("img");
-        img.src = gif.url;
-        favGifsDiv.appendChild(img);
-        img.addEventListener("click", event => {
-            const maxed = document.querySelector(".Maxed");
-            maxed.classList.toggle("Display-none");
-        });
-        //adding children
+        if (favGifsDiv !== null) {
+            const gif = this[index];
+            const img = document.createElement("img");
+            img.src = gif.url;
+            favGifsDiv.appendChild(img);
+            img.addEventListener("click", event => {
+                const maxed = document.querySelector(".Maxed");
+                maxed.classList.toggle("Display-none");
+            });
+            //adding children
+        } else {
+            console.log("favGifs-div es nulo");
 
         }
         return favGifsDiv;
@@ -271,4 +306,3 @@
     addEvents();
     loadTrending(trendingGifos);
 })();
-
